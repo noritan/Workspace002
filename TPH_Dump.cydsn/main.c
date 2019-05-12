@@ -43,6 +43,12 @@ struct Bme280Context {
     int16   p7;
     int16   p8;
     int16   p9;
+    uint8   h1;
+    int16   h2;
+    uint8   h3;
+    int16   h4;
+    int16   h5;
+    int8    h6;
 };
 
 struct Bme280Uncomp {
@@ -55,8 +61,12 @@ struct Bme280Uncomp {
 #define BME280_ADDRESS      (0x76)  // I2C device address
 #define BME280_DIG_T        (0x88)  // address of T Parameters
 #define BME280_DIG_T_LEN    (6)     // Length of T parameters field
-#define BME280_DIG_P        (0x8e)  // address of T Parameters
-#define BME280_DIG_P_LEN    (18)     // Length of T parameters field
+#define BME280_DIG_P        (0x8e)  // address of P Parameters
+#define BME280_DIG_P_LEN    (18)    // Length of P parameters field
+#define BME280_DIG_H1       (0xA1)  // address of H1 Parameters
+#define BME280_DIG_H1_LEN   (1)     // Length of H1 parameters field
+#define BME280_DIG_H2       (0xE1)  // address of H2..H6 Parameters
+#define BME280_DIG_H2_LEN   (7)     // Length of H2..H6 parameters field
 #define BME280_CTRL_HUM     (0xf2)  // ctrl_hum register address
 #define BME280_CTRL_MEAS    (0xf4)  // ctrl_meas register address
 #define BME280_PTH          (0xf7)  // Press, Temp, Hum register address
@@ -127,6 +137,17 @@ void bme280_getParameters(struct Bme280Context *context) {
     context->p7 = (int16)((rbuf[13] << 8) | rbuf[12]);
     context->p8 = (int16)((rbuf[15] << 8) | rbuf[14]);
     context->p9 = (int16)((rbuf[17] << 8) | rbuf[16]);
+    // Read H parameters
+    bme280_writeAddress(context, BME280_DIG_H1);
+    bme280_readRegister(context, BME280_DIG_H1_LEN, rbuf);
+    context->h1 = rbuf[0];
+    bme280_writeAddress(context, BME280_DIG_H2);
+    bme280_readRegister(context, BME280_DIG_H2_LEN, rbuf);
+    context->h2 = (int16)((rbuf[1] << 8) | rbuf[0]);
+    context->h3 = (uint8)rbuf[2];
+    context->h4 = ((int16)((rbuf[3] << 8) | ((rbuf[4] & 0x0F) << 4))) >> 4;
+    context->h5 = ((int16)((rbuf[5] << 8) | (rbuf[4] & 0xF0))) >> 4;
+    context->h6 = (int8)rbuf[6];
 }
 
 void bme280_normalMode(struct Bme280Context *context) {
@@ -216,6 +237,38 @@ uint32 bme280_compensate_P(struct Bme280Context *context, struct Bme280Uncomp *u
     return pressure;
 }
 
+uint32 bme280_compensate_H(struct Bme280Context *context, struct Bme280Uncomp *uncomp) {
+    int32_t var1;
+    int32_t var2;
+    int32_t var3;
+    int32_t var4;
+    int32_t var5;
+    uint32_t humidity;
+    uint32_t humidity_max = 102400; // 100 * 2^10
+
+    var1 = uncomp->t_fine - ((int32_t)76800); // 76800 = 75 * 2^10
+    var2 = (int32_t)(uncomp->h << 14); // 16384 = 2^14
+    var3 = (int32_t)(((int32_t)context->h4) << 20); // 1048576 = 2^20
+    var4 = ((int32_t)context->h5) * var1;
+    var5 = (((var2 - var3) - var4) + (int32_t)16384) >> 15; // 16384 = 2^14, 32768 = 2^15
+    var2 = (var1 * ((int32_t)context->h6)) >> 10; // 1024 = 2^10
+    var3 = (var1 * ((int32_t)context->h3)) >> 11; // 2048 = 2^11
+    var4 = ((var2 * (var3 + (int32_t)32768)) >> 10) + (int32_t)2097152; // 32768 = 2^15, 1024 = 2^10, 2097152 = 2^21
+    var2 = ((var4 * ((int32_t)context->h2)) + 8192) >> 14; // 8192 = 2^13, 16384 = 2^14
+    var3 = var5 * var2;
+    var4 = ((var3 >> 15) * (var3 >> 15)) >> 7; // 32768 = 2^15, 128 = 2^7
+    var5 = var3 - ((var4 * ((int32_t)context->h1)) >> 4);
+    var5 = (var5 < 0 ? 0 : var5);
+    var5 = (var5 > 419430400 ? 419430400 : var5); // 419430400 = 100 * 2^24
+    humidity = (uint32_t)(var5 >> 12); // 4096 = 2^12
+    if (humidity > humidity_max)
+    {
+        humidity = humidity_max;
+    }
+
+    return humidity;
+}
+
 int main(void)
 {
     CyGlobalIntEnable; /* Enable global interrupts. */
@@ -245,6 +298,7 @@ int main(void)
             uint8 rbuf[BME280_PTH_LEN];
             int32 temp;
             uint32 press;
+            uint32 hum;
             char sbuf[128];
             struct Bme280Uncomp uncomp;
             
@@ -253,7 +307,8 @@ int main(void)
             bme280_storePTH(&uncomp, rbuf);
             temp = bme280_compensate_T(&context, &uncomp);
             press = bme280_compensate_P(&context, &uncomp);
-            sprintf(sbuf, "TEMP=%ld PRESS=%ld\r\n", temp, press); 
+            hum = bme280_compensate_H(&context, &uncomp);
+            sprintf(sbuf, "TEMP=%ld PRESS=%ld HUMIDITY=%ld \r\n", temp, press, hum); 
             UART_UartPutString(sbuf);
         }
         CyDelay(1000);
