@@ -16,6 +16,9 @@ int main(void)
     CyGlobalIntEnable; /* Enable global interrupts. */
 
     /* Place your initialization/startup code here (e.g. MyInst_Start()) */
+    I2CM_Start();
+    LCD_Driver_Start();
+    LED_Driver_Start();
 
     for(;;)
     {
