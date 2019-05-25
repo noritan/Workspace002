@@ -11,6 +11,8 @@
 */
 #include "project.h"
 
+uint8   duty = 0u;
+
 int main(void)
 {
     CyGlobalIntEnable; /* Enable global interrupts. */
@@ -23,6 +25,14 @@ int main(void)
     for(;;)
     {
         /* Place your application code here. */
+        LED_Driver_WritePWM(
+            duty,
+            duty,
+            duty,
+            duty
+        );
+        CyDelay(10);
+        duty++;
     }
 }
 

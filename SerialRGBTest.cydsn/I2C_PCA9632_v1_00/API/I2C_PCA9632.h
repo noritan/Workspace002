@@ -29,6 +29,15 @@
 #endif /* `$I2cMasterInstanceName`_SCB_MODE */
 
 //======================================================================
+//  Macros
+//======================================================================
+#define `$INSTANCE_NAME`_MODE1_SLEEP (0x10)  
+#define `$INSTANCE_NAME`_MODE1_ENABLE (0x00)  
+#define `$INSTANCE_NAME`_MODE1_DISABLE (`$INSTANCE_NAME`_MODE1_SLEEP)  
+#define `$INSTANCE_NAME`_LEDOUT_ENABLE (0xAA)  
+#define `$INSTANCE_NAME`_LEDOUT_DISABLE (0x00)  
+
+//======================================================================
 //  Global Cariables
 //======================================================================
 extern uint8 `$INSTANCE_NAME`_initVar;
@@ -41,6 +50,9 @@ void `$INSTANCE_NAME`_Enable(void);
 void `$INSTANCE_NAME`_Disable(void);
 void `$INSTANCE_NAME`_Start(void);
 void `$INSTANCE_NAME`_Stop(void);
+void `$INSTANCE_NAME`_WriteMode1(uint8 mode1);
+void `$INSTANCE_NAME`_WriteLedout(uint8 ledout);
+void `$INSTANCE_NAME`_WritePWM(uint8 pwm0, uint8 pwm1, uint8 pwm2, uint8 pwm3);
 
 #endif /* CY_I2C_PCA9632_`$INSTANCE_NAME`_H */
 

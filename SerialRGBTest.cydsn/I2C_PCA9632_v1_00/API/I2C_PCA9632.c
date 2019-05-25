@@ -20,10 +20,12 @@
 //======================================================================
 #include "`$INSTANCE_NAME`.h"
 
+
 //======================================================================
 //  Variable declaration
 //======================================================================
 uint8 `$INSTANCE_NAME`_initVar = 0u;
+
 
 //======================================================================
 //  Function Name: `$INSTANCE_NAME`_Init
@@ -64,6 +66,14 @@ void `$INSTANCE_NAME`_Init(void) {
 //
 //======================================================================
 void `$INSTANCE_NAME`_Enable(void) {
+    // Enter to Normal mode
+    `$INSTANCE_NAME`_WriteMode1(
+        `$INSTANCE_NAME`_MODE1_ENABLE
+    );
+    // Enable all LED as PWM
+    `$INSTANCE_NAME`_WriteLedout(
+        `$INSTANCE_NAME`_LEDOUT_ENABLE
+    );
 }
 
 
@@ -85,6 +95,14 @@ void `$INSTANCE_NAME`_Enable(void) {
 //
 //======================================================================
 void `$INSTANCE_NAME`_Disable(void) {
+    // Disable all LED
+    `$INSTANCE_NAME`_WriteLedout(
+        `$INSTANCE_NAME`_LEDOUT_DISABLE
+    );
+    // Enter to Sleep mode
+    `$INSTANCE_NAME`_WriteMode1(
+        `$INSTANCE_NAME`_MODE1_DISABLE
+    );
 }
 
 
@@ -137,6 +155,76 @@ void `$INSTANCE_NAME`_Start(void) {
 //======================================================================
 void `$INSTANCE_NAME`_Stop(void) {
     `$INSTANCE_NAME`_Disable();
+}
+
+
+//======================================================================
+//  Function Name: `$INSTANCE_NAME`_WriteMode1
+//======================================================================
+//
+//  Summary:
+//    Set MODE1 register.
+//
+//  Parameters:
+//    mode - Byte value to be written to MODE1
+//
+//  Return:
+//    None
+//
+//  Reentrant:
+//    No
+//
+//======================================================================
+void `$INSTANCE_NAME`_WriteMode1(uint8 mode1) {
+}
+
+//======================================================================
+//  Function Name: `$INSTANCE_NAME`_WriteMode1
+//======================================================================
+//
+//  Summary:
+//    Set LEDOUT register.
+//
+//  Parameters:
+//    ledout - Byte value to be written to LEDOUT
+//
+//  Return:
+//    None
+//
+//  Reentrant:
+//    No
+//
+//======================================================================
+void `$INSTANCE_NAME`_WriteLedout(uint8 ledout) {
+}
+
+
+//======================================================================
+//  Function Name: `$INSTANCE_NAME`_WriteMode1
+//======================================================================
+//
+//  Summary:
+//    Set PWM registers.
+//
+//  Parameters:
+//    pwm0 - PWM value for LED0
+//    pwm1 - PWM value for LED1
+//    pwm2 - PWM value for LED2
+//    pwm3 - PWM value for LED3
+//
+//  Return:
+//    None
+//
+//  Reentrant:
+//    No
+//
+//======================================================================
+void `$INSTANCE_NAME`_WritePWM(
+    uint8 pwm0,
+    uint8 pwm1,
+    uint8 pwm2,
+    uint8 pwm3
+) {
 }
 
 
