@@ -24,9 +24,25 @@
 
 #include "`$I2cMasterInstanceName`.h"
 
+//======================================================================
+//  Conditional Compilation Parameters
+//======================================================================
+//  This condition checks if I2C Master implemented on SCB
+//  block. There is mismatch in function names between I2C Master that is
+//  implemented on SCB and I2C Master that is implemented on UDB.
+//======================================================================
 #if defined(`$I2cMasterInstanceName`_SCB_MODE)
-    #include "`$I2cMasterInstanceName`_I2C.h"
+    // In this case always returns - "true"
+    #define `$INSTANCE_NAME`_IS_SCB_MASTER_USED     (0x01u == 0x01u)
+#else
+    // Always "false"
+    #define `$INSTANCE_NAME`_IS_SCB_MASTER_USED     (0x01u == 0x00u)
 #endif /* `$I2cMasterInstanceName`_SCB_MODE */
+
+#if defined(`$INSTANCE_NAME`_IS_SCB_MASTER_USED)
+    // An additional header file for SCB
+    #include "`$I2cMasterInstanceName`_I2C.h"
+#endif /* `$INSTANCE_NAME`_IS_SCB_MASTER_USED */
 
 //======================================================================
 //  Macros
@@ -36,6 +52,28 @@
 #define `$INSTANCE_NAME`_MODE1_DISABLE (`$INSTANCE_NAME`_MODE1_SLEEP)  
 #define `$INSTANCE_NAME`_LEDOUT_ENABLE (0xAA)  
 #define `$INSTANCE_NAME`_LEDOUT_DISABLE (0x00)  
+
+#define `$INSTANCE_NAME`_DEFAULT_I2C_ADDRESS ((uint8)(`$DefaultI2cAddress`u))
+#define `$INSTANCE_NAME`_BUFF_SIZE (0x100u)
+
+// MACROs for handling I2C MAster API names on SCB and UDB
+#if (`$INSTANCE_NAME`_IS_SCB_MASTER_USED)
+    #define `$INSTANCE_NAME`_MODE_COMPLETE_XFER         (`$I2cMasterInstanceName`_I2C_MODE_COMPLETE_XFER)
+    #define `$INSTANCE_NAME`_WRITE_COMPLETE             (`$I2cMasterInstanceName`_I2C_MSTAT_WR_CMPLT)
+
+    #define `$INSTANCE_NAME`_MasterWriteBuf(slaveAddress, wrData, cnt, mode)  \
+        `$I2cMasterInstanceName`_I2CMasterWriteBuf(slaveAddress, wrData, cnt, mode)
+
+    #define `$INSTANCE_NAME`_MasterReadStatus()     `$I2cMasterInstanceName`_I2CMasterStatus()
+#else
+    #define `$INSTANCE_NAME`_MODE_COMPLETE_XFER         (`$I2cMasterInstanceName`_MODE_COMPLETE_XFER)
+    #define `$INSTANCE_NAME`_WRITE_COMPLETE             (`$I2cMasterInstanceName`_MSTAT_WR_CMPLT)
+
+    #define `$INSTANCE_NAME`_MasterWriteBuf(slaveAddress, wrData, cnt, mode)  \
+        `$I2cMasterInstanceName`_MasterWriteBuf(slaveAddress, wrData, cnt, mode)
+
+    #define `$INSTANCE_NAME`_MasterReadStatus()     `$I2cMasterInstanceName`_MasterStatus()
+#endif /* `$INSTANCE_NAME`_IS_SCB_MASTER_USED */
 
 //======================================================================
 //  Global Cariables

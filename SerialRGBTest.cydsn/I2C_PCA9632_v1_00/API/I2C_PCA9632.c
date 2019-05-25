@@ -26,6 +26,23 @@
 //======================================================================
 uint8 `$INSTANCE_NAME`_initVar = 0u;
 
+//  Buffer that holds data to be send to I2C slave
+static uint8 `$INSTANCE_NAME`_buff[`$INSTANCE_NAME`_BUFF_SIZE];
+
+/* Need to have `$INSTANCE_NAME`_buffIndex of different size to avoid MISRA
+* warning when SCB based I2C Master is used. 
+*/
+#if(`$INSTANCE_NAME`_IS_SCB_MASTER_USED)
+    /* Variable used for buffer indexing */
+    static uint32 `$INSTANCE_NAME`_buffIndex = 0u;
+    /* Variable stores the I2C address */
+    static uint32 `$INSTANCE_NAME`_address = `$INSTANCE_NAME`_DEFAULT_I2C_ADDRESS;
+#else
+    /* Variable used for buffer indexing */
+    static uint8 `$INSTANCE_NAME`_buffIndex = 0u;
+    /* Variable stores the I2C address */
+    static uint8 `$INSTANCE_NAME`_address = `$INSTANCE_NAME`_DEFAULT_I2C_ADDRESS;
+#endif /* (`$INSTANCE_NAME`_IS_SCB_MASTER_USED) */
 
 //======================================================================
 //  Function Name: `$INSTANCE_NAME`_Init
@@ -225,6 +242,43 @@ void `$INSTANCE_NAME`_WritePWM(
     uint8 pwm2,
     uint8 pwm3
 ) {
+}
+
+
+//======================================================================
+//  Function Name: `$INSTANCE_NAME`_SendSequence
+//======================================================================
+//
+//  Summary:
+//    Sends the content of the buffer to the I2C device and waits
+//    while transaction completes. In the end resets index to point
+//    to the start of the buffer.
+//
+//  Parameters:
+//    None
+//
+//  Return:
+//    None
+//
+//  Reentrant:
+//    No
+//
+//======================================================================
+static void `$INSTANCE_NAME`_SendSequence(void) {
+    // Send command pattern to I2C device
+    (void) `$INSTANCE_NAME`_MasterWriteBuf(
+        `$INSTANCE_NAME`_address,
+        `$INSTANCE_NAME`_buff,
+        `$INSTANCE_NAME`_buffIndex,
+        `$INSTANCE_NAME`_MODE_COMPLETE_XFER
+    );
+
+    while (!(`$INSTANCE_NAME`_MasterReadStatus() & `$INSTANCE_NAME`_WRITE_COMPLETE)) {
+        // Wait until I2C Master finishes transaction
+    }
+
+    // Reset buffer index
+    `$INSTANCE_NAME`_buffIndex = 0u;
 }
 
 
