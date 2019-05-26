@@ -22,6 +22,13 @@ int main(void)
     LCD_Driver_Start();
     LED_Driver_Start();
 
+    {
+        uint32 i;
+        for (i = 0; i < 10; i++) {
+            LCD_Driver_PrintString("UNKO! ");
+        }
+    }
+
     for(;;)
     {
         /* Place your application code here. */
@@ -31,8 +38,8 @@ int main(void)
             duty,
             duty
         );
-        CyDelay(10);
-        duty++;
+        CyDelay(200);
+        duty += 16;
     }
 }
 

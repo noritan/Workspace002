@@ -44,6 +44,14 @@ static uint8 `$INSTANCE_NAME`_buff[`$INSTANCE_NAME`_BUFF_SIZE];
     static uint8 `$INSTANCE_NAME`_address = `$INSTANCE_NAME`_DEFAULT_I2C_ADDRESS;
 #endif /* (`$INSTANCE_NAME`_IS_SCB_MASTER_USED) */
 
+
+//======================================================================
+//  Internal function ptototypes
+//======================================================================
+static void `$INSTANCE_NAME`_WriteDataToBuff(uint8 dByte);
+static void `$INSTANCE_NAME`_SendSequence(void);
+
+
 //======================================================================
 //  Function Name: `$INSTANCE_NAME`_Init
 //======================================================================
@@ -193,6 +201,9 @@ void `$INSTANCE_NAME`_Stop(void) {
 //
 //======================================================================
 void `$INSTANCE_NAME`_WriteMode1(uint8 mode1) {
+    `$INSTANCE_NAME`_WriteDataToBuff(`$INSTANCE_NAME`_REG_MODE1);
+    `$INSTANCE_NAME`_WriteDataToBuff(mode1);
+    `$INSTANCE_NAME`_SendSequence();
 }
 
 //======================================================================
@@ -213,6 +224,9 @@ void `$INSTANCE_NAME`_WriteMode1(uint8 mode1) {
 //
 //======================================================================
 void `$INSTANCE_NAME`_WriteLedout(uint8 ledout) {
+    `$INSTANCE_NAME`_WriteDataToBuff(`$INSTANCE_NAME`_REG_LEDOUT);
+    `$INSTANCE_NAME`_WriteDataToBuff(ledout);
+    `$INSTANCE_NAME`_SendSequence();
 }
 
 
@@ -242,6 +256,39 @@ void `$INSTANCE_NAME`_WritePWM(
     uint8 pwm2,
     uint8 pwm3
 ) {
+    `$INSTANCE_NAME`_WriteDataToBuff(
+        `$INSTANCE_NAME`_REG_PWM0 | `$INSTANCE_NAME`_REG_CONTINUOUS
+    );
+    `$INSTANCE_NAME`_WriteDataToBuff(pwm0);
+    `$INSTANCE_NAME`_WriteDataToBuff(pwm1);
+    `$INSTANCE_NAME`_WriteDataToBuff(pwm2);
+    `$INSTANCE_NAME`_WriteDataToBuff(pwm3);
+    `$INSTANCE_NAME`_SendSequence();
+}
+
+
+//======================================================================
+//   Function Name: `$INSTANCE_NAME`_WriteDataToBuff
+//======================================================================
+//
+//  Summary:
+//    Writes a byte of data to the I2C buffer.
+//
+//  Parameters:
+//    dByte: the byte containing to be written to the I2C device.
+//
+//  Return:
+//    None
+//
+//  Reentrant:
+//    No
+//
+//======================================================================
+static void `$INSTANCE_NAME`_WriteDataToBuff(uint8 dByte) {
+    // Put one byte of data to buffer at location of `$INSTANCE_NAME`_buffIndex
+    `$INSTANCE_NAME`_buff[`$INSTANCE_NAME`_buffIndex] = dByte;
+    // Increment `$INSTANCE_NAME`_buffIndex to point to next free position
+    `$INSTANCE_NAME`_buffIndex++;
 }
 
 

@@ -47,13 +47,25 @@
 //======================================================================
 //  Macros
 //======================================================================
+// Register address
+#define `$INSTANCE_NAME`_REG_CONTINUOUS (0x80)  
+#define `$INSTANCE_NAME`_REG_MODE1 (0x00)  
+#define `$INSTANCE_NAME`_REG_PWM0 (0x02) 
+#define `$INSTANCE_NAME`_REG_LEDOUT (0x08)
+
+// Configuration bit field
 #define `$INSTANCE_NAME`_MODE1_SLEEP (0x10)  
+
+// Register initializer
 #define `$INSTANCE_NAME`_MODE1_ENABLE (0x00)  
 #define `$INSTANCE_NAME`_MODE1_DISABLE (`$INSTANCE_NAME`_MODE1_SLEEP)  
 #define `$INSTANCE_NAME`_LEDOUT_ENABLE (0xAA)  
 #define `$INSTANCE_NAME`_LEDOUT_DISABLE (0x00)  
 
+// Default I2C slave address
 #define `$INSTANCE_NAME`_DEFAULT_I2C_ADDRESS ((uint8)(`$DefaultI2cAddress`u))
+
+// I2C stream buffer size
 #define `$INSTANCE_NAME`_BUFF_SIZE (0x100u)
 
 // MACROs for handling I2C MAster API names on SCB and UDB
